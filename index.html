@@ -52,7 +52,7 @@ h1{font-size:clamp(34px,6vw,60px)}h2{font-size:clamp(30px,5vw,48px)}
 .tabs button{padding:9px 18px;border-radius:99px;color:var(--mut);background:var(--gl)}.tabs button.on{color:var(--ink);background:rgba(139,92,246,.35)}
 .glass{background:var(--gl);backdrop-filter:blur(22px);border-radius:28px;padding:22px}
 .stage{position:relative;aspect-ratio:4/3;max-width:560px;border-radius:28px;overflow:hidden;background:#0b0b26;display:grid;place-items:center;color:var(--mut);text-align:center;padding:16px}
-.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scaleX(-1)}
 .frame{position:absolute;inset:12%;border-radius:36px;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(103,232,249,.5);display:none;overflow:hidden}
 .frame:after{content:"";position:absolute;left:0;right:0;height:30%;background:linear-gradient(transparent,rgba(103,232,249,.25),transparent);animation:scan 3s ease-in-out infinite}
 @keyframes scan{0%{top:-30%}100%{top:100%}}
@@ -78,6 +78,29 @@ canvas{width:100%;height:120px;display:block}
 footer{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 40px;color:var(--mut);font-size:13px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}@media(max-width:720px){.grid2{grid-template-columns:1fr}.sig{grid-template-columns:1fr}}
 .tg{display:flex;gap:10px;align-items:center;padding:8px 0}
+@property --g1{syntax:'<color>';inherits:true;initial-value:#6d28d9}
+@property --g2{syntax:'<color>';inherits:true;initial-value:#0891b2}
+:root{transition:--g1 1.6s,--g2 1.6s}
+.bg b:nth-child(1){background:var(--g1)}.bg b:nth-child(2){background:var(--g2)}
+.orbwrap{position:relative}
+.pt{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;opacity:0;animation:fl var(--d) ease-in-out infinite var(--dl)}
+@keyframes fl{0%{opacity:0;transform:translateY(0)}30%{opacity:.7}100%{opacity:0;transform:translateY(-70px)}}
+.orbbtn{display:block;border-radius:50%;margin:0 auto;-webkit-tap-highlight-color:transparent}#orbV{width:min(56vw,250px)}
+.olab{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:500 15px/1.35 Manrope;white-space:pre-line;pointer-events:none;text-shadow:0 2px 14px rgba(0,0,0,.5);padding:0 18%}
+.ring{display:none;position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--c2);pointer-events:none;opacity:calc(.2 + var(--lvl)*.7);transform:scale(calc(1.12 + var(--lvl)*.45));transition:transform .1s,opacity .1s}
+.ring+.ring{border-color:var(--c1);opacity:calc(var(--lvl)*.6);transform:scale(calc(1.3 + var(--lvl)*.8))}
+.recording .ring{display:block}
+.ghost:disabled{opacity:.4;pointer-events:none}
+.fbox{position:absolute;border:2px solid #67e8f9;border-radius:22px;pointer-events:none;transition:all .18s linear;display:none;box-shadow:0 0 26px rgba(103,232,249,.45)}
+.live .fbox.on{display:block}
+.frame.miss{box-shadow:inset 0 0 0 2px rgba(251,191,36,.55)}.frame.hit:after{opacity:0}
+.exp{position:absolute;left:14px;right:14px;bottom:12px;display:none;flex-direction:column;gap:5px;text-align:left;font-size:12px;color:#fff;text-shadow:0 1px 6px #000}.live .exp{display:flex}
+.exp div{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:8px}
+.exp i{display:block;height:6px;border-radius:6px;background:linear-gradient(90deg,#22d3ee,#8b5cf6);transition:width .25s}
+.fprog{height:4px;border-radius:4px;background:var(--gl);margin-top:12px;max-width:560px;overflow:hidden}.fprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#8b5cf6);transition:width .3s}
+.meter{display:flex;gap:6px;justify-content:center;margin:8px 0 4px}.meter i{width:38px;height:5px;border-radius:5px;background:var(--ln)}.meter i.on{background:linear-gradient(90deg,var(--a),var(--b))}
+.modes .ghost{display:inline-flex;gap:8px;align-items:center}.modes svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sig{animation:in .5s both}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style></head><body>
 <div class="bg"><b></b><b></b><b></b></div>
@@ -87,20 +110,21 @@ footer{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 40px;color:v
  <div class="orbwrap"><div class="orb" id="orbH"><i></i><i></i><i></i></div></div>
  <h1>Understand the moment.</h1><p class="sub">Explore how you feel, with your face, your voice or your words.</p>
  <button class="cta" data-go="multi">Start mood analysis</button>
- <div class="modes" id="modes"><button class="ghost" data-go="face">Face scan</button><button class="ghost" data-go="voice">Voice</button><button class="ghost" data-go="text">Text</button><button class="ghost" data-go="multi">Multi-signal</button></div>
+ <div class="modes" id="modes"><button class="ghost" data-go="face"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="11" r="3"/></svg>Face scan</button><button class="ghost" data-go="voice"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>Voice</button><button class="ghost" data-go="text"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/></svg>Text</button><button class="ghost" data-go="multi"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/></svg>Multi-signal</button></div>
  <div class="last" id="last"></div><div class="dots" id="prev"></div>
 </section>
 
 <section id="analyze" class="view">
  <div class="tabs" id="tabs"><button data-m="face">Face scan</button><button data-m="voice">Voice</button><button data-m="text">Text</button><button data-m="multi">Multi-signal</button></div>
  <div class="panel" id="p-face">
-  <div class="stage" id="stage"><span id="faceMsg">The camera starts only when you press the button below. Nothing is recorded or uploaded.</span><video id="vid" muted playsinline hidden></video><div class="frame"></div></div>
-  <p class="note" id="faceLive"></p><div class="row" style="margin-top:14px"><button class="cta" id="camOn">Turn camera on</button><button class="ghost" id="camOff">Turn camera off</button><button class="ghost" id="faceRun">See face result</button></div>
+  <div class="stage" id="stage"><span id="faceMsg">The camera starts only when you press the button below. Nothing is recorded or uploaded.</span><video id="vid" muted playsinline hidden></video><div class="frame"></div><div class="fbox" id="fbox"></div><div class="exp" id="exp"></div></div>
+  <div class="fprog"><i></i></div><p class="note" id="faceLive"></p><div class="row" style="margin-top:14px"><button class="cta" id="camOn">Turn camera on</button><button class="ghost" id="camOff">Turn camera off</button><button class="ghost" id="faceRun" disabled>See face result</button></div>
   <p class="note">Runs on-device with a 7-class expression model (neutral, happy, sad, angry, fearful, surprised, disgusted). It can’t see Calm or Tired, and posed or neutral faces are often misread. The model downloads once, then is cached for offline use. Video never leaves your device.</p>
  </div>
  <div class="panel" id="p-voice">
-  <div class="glass"><canvas id="wave" width="900" height="120"></canvas></div>
-  <div class="row" style="margin-top:14px"><button class="cta" id="recGo">Start recording</button><button class="ghost" id="recStop">Stop</button><span class="rec" id="recDot">Microphone active</span></div>
+  <div class="orbwrap" style="padding-top:10px"><button class="orb orbbtn" id="orbV" aria-label="Start or stop recording"><i></i><i></i><i></i><u class="ring"></u><u class="ring"></u><span class="olab" id="olab">Tap to record</span></button></div>
+  <div class="glass" style="padding:10px 16px"><canvas id="wave" width="900" height="120" style="height:70px"></canvas></div>
+  <div class="row" style="margin-top:12px;justify-content:space-between"><span class="rec" id="recDot">Microphone active</span><span class="note" id="liveV" style="margin:0"></span></div>
   <label class="tg"><input type="checkbox" id="srOk"> <span class="note" style="margin:0">Also transcribe speech (your browser may send audio to its speech service). Needed for speaking pace.</span></label>
   <div id="vOut" class="note"></div>
   <button class="ghost" id="voiceRun" hidden>See voice result</button>
@@ -111,7 +135,7 @@ footer{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 40px;color:v
   <div class="meta"><span id="cnt">0 / 2000</span><span>Lexicon-based, not a trained AI model</span></div>
   <div class="row"><button class="cta" id="txRun">Analyze text</button><button class="ghost" id="txSample">Use sample</button><button class="ghost" id="txClear">Clear</button></div>
  </div>
- <div class="panel" id="p-multi">
+ <div class="panel" id="p-multi"><div class="orbwrap" style="padding:6px 0 14px"><div class="orb" id="orbM" style="width:min(48vw,190px)"><i></i><i></i><i></i></div></div>
   <div class="glass">
    <label class="tg"><input type="checkbox" id="mText" checked> Text <span class="note" style="margin:0">uses what’s in the Text tab</span></label>
    <label class="tg"><input type="checkbox" id="mVoice" checked> Voice <span class="note" style="margin:0">uses your latest recording this session</span></label>
@@ -152,7 +176,7 @@ const IDX={};for(const[m,s]of Object.entries(LEX))s.split(' ').forEach(w=>IDX[w]
 const NEG=new Set(['not','no','never','hardly','without','cannot']),INT=new Set(['very','really','so','extremely','super','totally']);
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const state={voice:null,res:null,self:null,saved:false};
-function tint(o,m){const c=typeof m==='string'?MOODS[m]||MODE_C.multi:m;o.style.setProperty('--c1',c[0]);o.style.setProperty('--c2',c[1])}
+function tint(o,m){const c=typeof m==='string'?MOODS[m]||MODE_C.multi:m;o.style.setProperty('--c1',c[0]);o.style.setProperty('--c2',c[1]);document.documentElement.style.setProperty('--g1',c[0]);document.documentElement.style.setProperty('--g2',c[1])}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3200)}
 let mem=[];const store={get(){try{return JSON.parse(localStorage.getItem('moodsync:v1')||'[]')}catch(e){return mem}},set(a){mem=a;try{localStorage.setItem('moodsync:v1',JSON.stringify(a))}catch(e){}}};
 function show(v){if(v!=='analyze'&&v!=='result'){camStop();recStop(true)}$$('.view').forEach(e=>e.classList.toggle('on',e.id===v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v||(v==='result'&&b.dataset.v==='analyze')));({home:renderHome,history:renderHistory,insights:renderInsights})[v]?.();scrollTo(0,0)}
@@ -177,10 +201,18 @@ let cam=null,fLoop=null,modelsP=null;
 function loadModels(){if(!modelsP){modelsP=(async()=>{if(!window.faceapi)throw new Error('lib');const u='https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';await faceapi.nets.tinyFaceDetector.loadFromUri(u);await faceapi.nets.faceExpressionNet.loadFromUri(u)})();modelsP.catch(()=>{modelsP=null})}return modelsP}
 async function camOn(){if(cam)return;try{cam=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}})}catch(e){$('#faceMsg').textContent=e.name==='NotAllowedError'?'Camera permission was denied. Allow it in your browser’s site settings, then try again.':'No camera was found or it is in use by another app.';return}
  const v=$('#vid');v.srcObject=cam;v.hidden=false;await v.play().catch(()=>{});$('#faceMsg').hidden=true;$('#stage').classList.add('live');toast('Camera is on');
- state.face={n:0,tot:0,sum:{}};$('#faceLive').textContent='Loading the expression model (first time only)…';
+ state.face={n:0,tot:0,sum:{},ema:{}};$('#p-face .fprog i').style.width='0';$('#faceRun').disabled=true;$('#faceLive').textContent='Loading the expression model (first time only)…';
  try{await loadModels()}catch(e){$('#faceLive').textContent='The expression model could not load. Check your connection and turn the camera on again. No estimate will be made.';return}
  if(!cam)return;const opt=new faceapi.TinyFaceDetectorOptions({inputSize:224,scoreThreshold:.5});
- fLoop=setInterval(async()=>{if(!cam||v.readyState<2)return;const d=await faceapi.detectSingleFace(v,opt).withFaceExpressions();const f=state.face;f.tot++;if(!d){$('#faceLive').textContent='No face in view. Centre your face in the frame.';return}f.n++;for(const[k,p]of Object.entries(d.expressions))f.sum[k]=(f.sum[k]||0)+p;const t=Object.entries(d.expressions).sort((a,b)=>b[1]-a[1])[0];$('#faceLive').textContent='Reading… leaning '+t[0]+' ('+f.n+' frames)'},250)}
+ fLoop=setInterval(async()=>{if(!cam||v.readyState<2)return;const d=await faceapi.detectSingleFace(v,opt).withFaceExpressions();const f=state.face,bx=$('#fbox'),fr=$('.frame');f.tot++;
+ if(!d||d.detection.score<.6){bx.classList.remove('on');fr.classList.add('miss');fr.classList.remove('hit');$('#faceLive').textContent=d?'Face unclear. Add light or move closer.':'No face in view. Centre your face in the frame.';return}
+ f.n++;fr.classList.remove('miss');fr.classList.add('hit');
+ for(const[k,p]of Object.entries(d.expressions)){f.sum[k]=(f.sum[k]||0)+p;f.ema[k]=(f.ema[k]||0)*.7+p*.3}
+ const B=d.detection.box,W=v.parentElement.clientWidth,H=v.parentElement.clientHeight,sc=Math.min(W/v.videoWidth,H/v.videoHeight),ox=(W-v.videoWidth*sc)/2,oy=(H-v.videoHeight*sc)/2;
+ Object.assign(bx.style,{left:(W-(ox+(B.x+B.width)*sc))+'px',top:(oy+B.y*sc)+'px',width:B.width*sc+'px',height:B.height*sc+'px'});bx.classList.add('on');
+ $('#exp').innerHTML=Object.entries(f.ema).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,p])=>'<div><span>'+k+'</span><i style="width:'+Math.round(p*100)+'%"></i></div>').join('');
+ $('#p-face .fprog i').style.width=Math.min(f.n/20,1)*100+'%';$('#faceRun').disabled=f.n<8;
+ $('#faceLive').textContent=f.n<20?'Hold steady… '+f.n+'/20 frames':'Enough captured. See the result, or keep going for a steadier read.'},250)}
 function camStop(){clearInterval(fLoop);fLoop=null;if(!cam)return;cam.getTracks().forEach(t=>t.stop());cam=null;const v=$('#vid');v.srcObject=null;v.hidden=true;$('#faceMsg').hidden=false;$('#faceMsg').textContent='Camera is off.';$('#stage').classList.remove('live')}
 $('#camOn').onclick=camOn;$('#camOff').onclick=()=>{camStop();toast('Camera turned off')};$('#faceRun').onclick=()=>run(['face']);
 /* ---------- voice ---------- */
@@ -188,25 +220,28 @@ let A=null;
 function pitch(b,sr){const n=b.length,lo=Math.floor(sr/400),hi=Math.floor(sr/75);let c0=0,best=-1,bl=0;for(let i=0;i<n;i++)c0+=b[i]*b[i];for(let l=lo;l<=hi;l++){let s=0;for(let i=0;i<n-l;i++)s+=b[i]*b[i+l];if(s>best){best=s;bl=l}}return c0>0&&best/c0>.5?sr/bl:0}
 async function recGo(){if(A)return;let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){$('#vOut').textContent=e.name==='NotAllowedError'?'Microphone permission was denied. Allow it in your browser’s site settings, then try again.':'No microphone was found or it is in use by another app.';return}
  const ctx=new (window.AudioContext||window.webkitAudioContext)(),an=ctx.createAnalyser();an.fftSize=2048;ctx.createMediaStreamSource(st).connect(an);
- A={st,ctx,an,buf:new Float32Array(2048),rms:[],pit:[],t0:performance.now(),f:0,words:0,tr:''};
+ A={st,ctx,an,buf:new Float32Array(2048),rms:[],pit:[],t0:performance.now(),f:0,words:0,tr:'',nf:[],thr:.015};
  if($('#srOk').checked){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){const r=new SR();r.continuous=true;r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)A.tr+=e.results[i][0].transcript+' '};r.onerror=()=>{};try{r.start();A.sr=r}catch(e){}}else toast('Speech recognition isn’t supported here; pace will be skipped.')}
- $('#recDot').classList.add('on');$('#orbH').classList.add('busy');$('#vOut').textContent='';$('#voiceRun').hidden=true;state.voice=null;
+ $('#recDot').classList.add('on');$('#orbV').classList.add('busy','recording');navigator.vibrate&&navigator.vibrate(20);$('#vOut').textContent='';$('#voiceRun').hidden=true;state.voice=null;
  const cv=$('#wave'),g=cv.getContext('2d');
  (function loop(){if(!A)return;A.an.getFloatTimeDomainData(A.buf);const b=A.buf;let s=0;for(let i=0;i<b.length;i++)s+=b[i]*b[i];const r=Math.sqrt(s/b.length);A.rms.push(r);
-  if(A.f++%3===0&&r>.015){const p=pitch(b,A.ctx.sampleRate);if(p)A.pit.push(p)}
-  $('#orbH').style.setProperty('--lvl',Math.min(r*4,1));
+  if(A.f++%3===0&&r>A.thr){const p=pitch(b,A.ctx.sampleRate);if(p){A.pit.push(p);A.lp=p}}
+  const e=Math.min(r*5,1);A.sm=(A.sm||0)*.8+e*.2;$('#orbV').style.setProperty('--lvl',A.sm.toFixed(3));
+  if(A.f<=40){A.nf.push(r);if(A.f===40)A.thr=Math.max(.012,A.nf.slice().sort((x,y)=>x-y)[10]*3)}
+  if(A.f%15===0)tint($('#orbV'),A.sm>.5?['#ec4899','#fb923c']:A.sm>.2?['#8b5cf6','#ec4899']:['#22d3ee','#8b5cf6']);
+  if(A.f%10===0){const q=Math.floor((performance.now()-A.t0)/1000);$('#olab').textContent='Listening '+Math.floor(q/60)+':'+String(q%60).padStart(2,'0')+'\nTap to stop';$('#liveV').textContent='Loudness '+Math.round(A.sm*100)+'%'+(A.lp?' · Pitch '+Math.round(A.lp)+' Hz':'')+(A.f<=40?' · calibrating room noise…':'');if(q>=60)recStop()}
   g.clearRect(0,0,900,120);const gr=g.createLinearGradient(0,0,900,0);gr.addColorStop(0,'#22d3ee');gr.addColorStop(.5,'#8b5cf6');gr.addColorStop(1,'#ec4899');g.strokeStyle=gr;g.lineWidth=3;g.lineCap='round';g.beginPath();
   for(let x=0;x<900;x++){const v=b[Math.floor(x/900*b.length)]*Math.min(3,.6/(r+.02));g.lineTo(x,60+v*55)}g.stroke();requestAnimationFrame(loop)})()}
 function recStop(quiet){if(!A)return;const a=A;A=null;a.st.getTracks().forEach(t=>t.stop());a.ctx.close();try{a.sr&&a.sr.stop()}catch(e){}
- $('#recDot').classList.remove('on');$('#orbH').classList.remove('busy');$('#orbH').style.setProperty('--lvl',0);if(quiet===true)return;
- const dur=(performance.now()-a.t0)/1000,thr=.015,v=a.rms.filter(x=>x>thr);
+ $('#recDot').classList.remove('on');const ob=$('#orbV');ob.classList.remove('busy','recording');ob.style.setProperty('--lvl',0);$('#olab').textContent='Tap to record';$('#liveV').textContent='';if(quiet===true)return;navigator.vibrate&&navigator.vibrate([15,40,15]);
+ const dur=(performance.now()-a.t0)/1000,thr=a.thr,v=a.rms.filter(x=>x>thr);
  if(dur<2||v.length<20){$('#vOut').textContent='Not enough speech was picked up. Record at least a few seconds of talking.';return}
  const en=v.reduce((x,y)=>x+y,0)/v.length,pm=a.pit.length>=8?a.pit.reduce((x,y)=>x+y,0)/a.pit.length:null,psd=pm?Math.sqrt(a.pit.reduce((x,y)=>x+(y-pm)**2,0)/a.pit.length):null,pause=1-v.length/a.rms.length;
  const words=a.tr.trim()?a.tr.trim().split(/\s+/).length:0,wpm=words>=5?words/(dur/60):null;
  const cues=[];if(en>.08)cues.push(1);else if(en<.025)cues.push(-1);if(psd!=null){if(psd>35)cues.push(1);else if(psd<12)cues.push(-1)}if(pause>.5)cues.push(-1);else if(pause<.2)cues.push(1);if(wpm!=null){if(wpm>170)cues.push(1);else if(wpm<100)cues.push(-1)}
  state.voice={dur,en,pm,psd,pause,wpm,tr:a.tr.trim(),arousal:cues.length?cues.reduce((x,y)=>x+y,0)/cues.length:0,nc:cues.length};
- $('#vOut').innerHTML=`Recorded ${dur.toFixed(1)}s · loudness ${(en*100).toFixed(1)}% of full scale · pauses ${Math.round(pause*100)}% of the time · pitch ${pm?Math.round(pm)+' Hz (variation ±'+Math.round(psd)+')':'not reliably measured'} · pace ${wpm?Math.round(wpm)+' words/min':'not measured (needs transcription)'}${state.voice.tr?`<br>Transcript: “${esc(state.voice.tr)}”`:''}`;$('#voiceRun').hidden=false}
-$('#recGo').onclick=recGo;$('#recStop').onclick=()=>recStop();$('#voiceRun').onclick=()=>run(['voice']);
+ $('#vOut').innerHTML=`Recorded ${dur.toFixed(1)}s · loudness ${(en*100).toFixed(1)}% of full scale · pauses ${Math.round(pause*100)}% of the time · pitch ${pm?Math.round(pm)+' Hz (variation ±'+Math.round(psd)+')':'not reliably measured'} · pace ${wpm?Math.round(wpm)+' words/min':'not measured (needs transcription)'}${state.voice.tr?`<br>Transcript: “${esc(state.voice.tr)}”`:''}`;$('#voiceRun').hidden=false;$('#olab').textContent='Tap to record again'}
+$('#orbV').onclick=()=>A?recStop():recGo();$('#voiceRun').onclick=()=>run(['voice']);
 /* ---------- analysis ---------- */
 function analyze(sel){const vec={},sig=[],dis=[];Object.keys(MOODS).forEach(k=>vec[k]=0);let used=0,textR=null,namedBy=0,n=0;
  if(sel.includes('text')){const t=$('#ta').value.trim();if(!t)sig.push({n:'Text',s:'Unavailable',d:'No text was entered.'});else{const r=analyzeText(t);if(!r.total)sig.push({n:'Text',s:'No cues',d:'None of the words matched the emotion lexicon, so text gives no estimate.'});else{textR=r;used++;namedBy++;n=r.hits.filter(h=>h.m).length;Object.entries(r.sc).forEach(([k,v])=>vec[k]+=v/r.total);const top=Object.entries(r.sc).sort((a,b)=>b[1]-a[1]).filter(e=>e[1]>0);sig.push({n:'Text',s:'Used',d:`${r.hits.length} emotional word${r.hits.length>1?'s':''} found: ${top.map(e=>e[0].toLowerCase()+' ×'+e[1]).join(', ')}.`})}}}
@@ -227,13 +262,13 @@ function analyze(sel){const vec={},sig=[],dis=[];Object.keys(MOODS).forEach(k=>v
  res.why=`Your ${textR&&faceV?'words and expression':textR?'wording':'expression'} leaned ${top[0].toLowerCase()}${w?' ('+w+')':''}.`+(sec[1]>=.6*top[1]&&sec[1]>0?` ${sec[0]} was close behind, so this reads as mixed.`:'')+` Confidence is ${res.conf.toLowerCase()} because it rests on ${[textR?n+' matched word'+(n===1?'':'s'):'',faceV?state.face.n+' face frames':''].filter(Boolean).join(' and ')}${used>1?' and '+used+' signals':''}, with ${margin<.25?'a narrow':'a clear'} gap to the next mood.`;
  return res}
 async function run(sel){camStop();show('analyze');const multi=sel.length>1;let res;
- if(multi){const L=$$('#steps li');$('#steps').hidden=false;$('#orbH').classList.add('busy');tint($('#orbH'),MODE_C.multi);$('#mRun').disabled=true;for(let i=0;i<4;i++){L.forEach((l,j)=>{l.className=j<i?'done':j===i?'on':''});if(i===1)res=analyze(sel);await sleep(650)}L.forEach(l=>l.className='done');await sleep(300);$('#steps').hidden=true;$('#orbH').classList.remove('busy');$('#mRun').disabled=false}else res=analyze(sel);
+ if(multi){const L=$$('#steps li');$('#steps').hidden=false;$('#orbM').classList.add('busy');tint($('#orbM'),MODE_C.multi);$('#mRun').disabled=true;for(let i=0;i<4;i++){L.forEach((l,j)=>{l.className=j<i?'done':j===i?'on':''});if(i===1)res=analyze(sel);await sleep(650)}L.forEach(l=>l.className='done');await sleep(300);$('#steps').hidden=true;$('#orbM').classList.remove('busy');$('#mRun').disabled=false}else res=analyze(sel);
  state.res=res;state.self=null;state.saved=false;showResult(res)}
 $('#mRun').onclick=()=>{const s=[];if($('#mText').checked)s.push('text');if($('#mVoice').checked)s.push('voice');if($('#mFace').checked)s.push('face');if(!s.length)return toast('Select at least one signal');run(s)};
 function showResult(r){show('result');const o=$('#orbR');tint(o,r.none?MODE_C.multi:r.vis);const t=new Date(r.ts).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});let h='';
  if(r.none)h=`<h2>No estimate</h2><p class="sub" style="max-width:520px;margin:12px auto">No valid signal was available, so nothing was estimated and nothing was made up.</p>`;
- else h=`<p class="note" style="margin:0">Estimated mood</p><h2>${r.label}</h2><p class="sub" style="max-width:560px;margin:12px auto 6px">${r.why}</p><p class="note">This estimates observable cues, not what you actually feel. ${t}</p>`;
- h+=`<div style="text-align:left;max-width:640px;margin:24px auto">${r.sig.map(s=>`<div class="sig"><b>${s.n}</b><span><i style="color:var(--ink);font-style:normal">${s.s}.</i> ${s.d}</span></div>`).join('')}`;
+ else h=`<p class="note" style="margin:0">Estimated mood</p><h2>${r.label}</h2><p class="sub" style="max-width:560px;margin:12px auto 6px">${r.why}</p><p class="note">This estimates observable cues, not what you actually feel. ${t}</p><div class="meter" style="--a:${MOODS[r.vis][0]};--b:${MOODS[r.vis][1]}">${[0,1,2].map(i=>`<i class="${i<=['Low','Moderate','Higher'].indexOf(r.conf)?'on':''}"></i>`).join('')}</div><p class="note" style="margin:0">Confidence: ${r.conf}</p>`;
+ h+=`<div style="text-align:left;max-width:640px;margin:24px auto">${r.sig.map((s,i)=>`<div class="sig" style="animation-delay:${.15+i*.1}s"><b>${s.n}</b><span><i style="color:var(--ink);font-style:normal">${s.s}.</i> ${s.d}</span></div>`).join('')}`;
  if(r.dis?.length)h+=r.dis.map(d=>`<div class="sig"><b>Disagreement</b><span>${d}</span></div>`).join('');
  if(r.textR)h+=`<div class="sig"><b>Highlights</b><span style="color:var(--ink)">${hlHTML(r.textR)}</span></div>`;
  h+=`</div>`;
@@ -263,5 +298,6 @@ function renderInsights(){const a=store.get();if(a.length<3){$('#ins').innerHTML
  const sr=a.filter(e=>e.self);if(sr.length){rows.push(['Self-reported',`You corrected or confirmed ${sr.length} of ${a.length} records. Most recent: ${sr.slice(-5).map(e=>e.self).join(' → ')}.`]);const cmp=sr.filter(e=>e.mood);if(cmp.length){const ok=cmp.filter(e=>e.mood===e.self).length;rows.push(['Estimate vs. you',`The estimate matched your own answer in ${ok} of ${cmp.length} comparable records.`]);const d=top(cmp.filter(e=>e.mood!==e.self).map(e=>e.mood+' → '+e.self));if(d.length)rows.push(['Biggest gap',`Estimated → you said: ${d[0][0]} (${d[0][1]}×).`])}}else rows.push(['Self-reported','No self-reported moods yet. Pick how you feel on a result to compare.']);
  $('#ins').innerHTML=rows.map(r=>`<div class="sig" style="grid-template-columns:170px 1fr"><b>${r[0]}</b><span style="color:var(--ink)">${r[1]}</span></div>`).join('')}
 setMode('multi');$$('.panel').forEach(p=>p.classList.remove('on'));renderHome();
+{const ow=$('#home .orbwrap');for(let i=0;i<16;i++){const b=document.createElement('b');b.className='pt';b.style.cssText=`left:${20+Math.random()*60}%;top:${35+Math.random()*60}%;--d:${5+Math.random()*6}s;--dl:-${Math.random()*8}s`;ow.appendChild(b)}}
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
