@@ -101,9 +101,23 @@ footer{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 40px;color:v
 .meter{display:flex;gap:6px;justify-content:center;margin:8px 0 4px}.meter i{width:38px;height:5px;border-radius:5px;background:var(--ln)}.meter i.on{background:linear-gradient(90deg,var(--a),var(--b))}
 .modes .ghost{display:inline-flex;gap:8px;align-items:center}.modes svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .sig{animation:in .5s both}
+@property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes ang{to{--ang:360deg}}@keyframes shim{to{background-position:-250% 0}}@keyframes sgp{50%{transform:scale(1.18);opacity:.65}}
+#splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg);transition:opacity .8s ease,visibility .8s,transform 1s cubic-bezier(.2,.8,.2,1)}
+#splash.out{opacity:0;visibility:hidden;transform:scale(1.08)}
+.spw{position:relative;display:flex;flex-direction:column;align-items:center}
+.sg{position:absolute;inset:-60%;background:radial-gradient(closest-side,rgba(139,92,246,.4),rgba(34,211,238,.12) 60%,transparent);animation:sgp 3s ease-in-out infinite}
+.sp{position:relative;padding:22px 44px}
+.ring2{position:absolute;inset:0;border-radius:999px;padding:2px;background:conic-gradient(from var(--ang),transparent 0 62%,#22d3ee 78%,#8b5cf6 88%,#ec4899 96%,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask-composite:exclude;animation:ang 2.4s linear infinite}
+.spn{position:relative;font:500 clamp(24px,7vw,38px) Fraunces,serif;letter-spacing:.22em;padding-left:.22em;background:linear-gradient(100deg,#eef0ff 35%,#67e8f9 45%,#ec4899 55%,#eef0ff 65%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shim 2.6s linear infinite}
+.spt{position:relative;margin-top:20px;color:var(--mut);font-size:14px;letter-spacing:.08em;animation:in 1s .5s both}
+@keyframes orbin{from{transform:scale(.35);opacity:0;filter:blur(24px)}to{transform:scale(1);opacity:1;filter:blur(0)}}
+#home.open .orb{animation:orbin 1.5s cubic-bezier(.2,.8,.2,1) both}
+#home.open h1{animation:in .9s .4s both}#home.open .sub{animation:in .9s .55s both}#home.open .cta{animation:in .9s .7s both}#home.open .modes{animation:in .9s .85s both}#home.open .last,#home.open .dots{animation:in .9s 1s both}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style></head><body>
 <div class="bg"><b></b><b></b><b></b></div>
+<div id="splash" role="status" aria-label="Loading MOODSYNC"><div class="spw"><div class="sg"></div><div class="sp"><i class="ring2"></i><span class="spn">MOODSYNC</span></div><div class="spt">Understand the moment.</div></div></div>
 <header><span class="logo">MOODSYNC</span><nav id="nav"><button data-v="home" class="on">Home</button><button data-v="analyze">Analyze</button><button data-v="history">History</button><button data-v="insights">Insights</button></nav></header>
 <main>
 <section id="home" class="view on hero">
@@ -298,5 +312,6 @@ function renderInsights(){const a=store.get();if(a.length<3){$('#ins').innerHTML
  $('#ins').innerHTML=rows.map(r=>`<div class="sig" style="grid-template-columns:170px 1fr"><b>${r[0]}</b><span style="color:var(--ink)">${r[1]}</span></div>`).join('')}
 setMode('multi');$$('.panel').forEach(p=>p.classList.remove('on'));renderHome();
 {const ow=$('#home .orbwrap');for(let i=0;i<16;i++){const b=document.createElement('b');b.className='pt';b.style.cssText=`left:${20+Math.random()*60}%;top:${35+Math.random()*60}%;--d:${5+Math.random()*6}s;--dl:-${Math.random()*8}s`;ow.appendChild(b)}}
+{const sp=$('#splash'),h=$('#home'),w=Math.max(0,(RM?500:2000)-performance.now());setTimeout(()=>{h.classList.add('open');sp.classList.add('out');setTimeout(()=>{sp.remove();h.classList.remove('open')},2300)},w)}
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
