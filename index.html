@@ -118,7 +118,7 @@ footer{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 40px;color:v
 </style></head><body>
 <div class="bg"><b></b><b></b><b></b></div>
 <div id="splash" role="status" aria-label="Loading MOODSYNC"><div class="spw"><div class="sg"></div><div class="sp"><i class="ring2"></i><span class="spn">MOODSYNC</span></div><div class="spt">Understand the moment.</div></div></div>
-<header><span class="logo">MOODSYNC</span><nav id="nav"><button data-v="home" class="on">Home</button><button data-v="analyze">Analyze</button><button data-v="history">History</button><button data-v="insights">Insights</button></nav></header>
+<header><span class="logo">MOODSYNC</span><nav id="nav"><button data-v="home" class="on">Home</button><button data-v="analyze">Analyze</button><button data-v="history">History</button><button data-v="insights">Insights</button></nav><button class="ghost" id="spk" style="padding:8px 14px;font-size:13px"></button></header>
 <main>
 <section id="home" class="view on hero">
  <div class="orbwrap"><div class="orb" id="orbH"><i></i><i></i><i></i></div></div>
@@ -130,7 +130,7 @@ footer{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 40px;color:v
 
 <section id="analyze" class="view">
  <div class="tabs" id="tabs"><button data-m="face">Face scan</button><button data-m="voice">Voice</button><button data-m="text">Text</button><button data-m="multi">Multi-signal</button></div>
- <div class="panel" id="p-face">
+ <div class="panel" id="p-face"><div class="orbwrap" style="padding:0 0 12px"><div class="orb" id="orbF" style="width:min(34vw,120px)"><i></i><i></i><i></i></div></div>
   <div class="stage" id="stage"><span id="faceMsg">The camera starts only when you press the button below. Nothing is recorded or uploaded.</span><video id="vid" muted playsinline hidden></video><div class="frame"></div><div class="fbox" id="fbox"></div><div class="exp" id="exp"></div></div>
   <div class="fprog"><i></i></div><p class="note" id="faceLive"></p><div class="row" style="margin-top:14px"><button class="cta" id="camOn">Turn camera on</button><button class="ghost" id="camOff">Turn camera off</button><button class="ghost" id="faceRun" disabled>See face result</button></div>
   <p class="note">Runs on-device with a 7-class expression model (neutral, happy, sad, angry, fearful, surprised, disgusted). It can’t see Calm or Tired, and posed or neutral faces are often misread. The model downloads once, then is cached for offline use. Video never leaves your device.</p>
@@ -193,7 +193,7 @@ const mixc=(a,b,t)=>{const q=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),x=q(
 function tint(o,m){const c=typeof m==='string'?MOODS[m]||MODE_C.multi:m;o.style.setProperty('--c1',c[0]);o.style.setProperty('--c2',c[1]);document.documentElement.style.setProperty('--g1',c[0]);document.documentElement.style.setProperty('--g2',c[1])}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),3200)}
 let mem=[];const store={get(){try{return JSON.parse(localStorage.getItem('moodsync:v1')||'[]')}catch(e){return mem}},set(a){mem=a;try{localStorage.setItem('moodsync:v1',JSON.stringify(a))}catch(e){}}};
-function show(v){if(v!=='analyze'&&v!=='result'){camStop();recStop(true)}$$('.view').forEach(e=>e.classList.toggle('on',e.id===v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v||(v==='result'&&b.dataset.v==='analyze')));({home:renderHome,history:renderHistory,insights:renderInsights})[v]?.();scrollTo(0,0)}
+function show(v){if(v!=='result')stopSay();if(v!=='analyze'&&v!=='result'){camStop();recStop(true)}$$('.view').forEach(e=>e.classList.toggle('on',e.id===v));$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v||(v==='result'&&b.dataset.v==='analyze')));({home:renderHome,history:renderHistory,insights:renderInsights})[v]?.();scrollTo(0,0)}
 function setMode(m){camStop();recStop(true);$$('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+m));$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));tint($('#orbH'),MODE_C[m]);state.mode=m}
 $$('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
 $$('[data-go]').forEach(b=>{b.onclick=()=>{show('analyze');setMode(b.dataset.go)};b.onmouseenter=()=>tint($('#orbH'),MODE_C[b.dataset.go])});
@@ -210,6 +210,18 @@ $('#ta').oninput=e=>$('#cnt').textContent=e.target.value.length+' / 2000';
 $('#txSample').onclick=()=>{$('#ta').value='I finally finished the project and I feel really proud, but I’m also a little tired and nervous about tomorrow’s presentation.';$('#ta').dispatchEvent(new Event('input'))};
 $('#txClear').onclick=()=>{$('#ta').value='';$('#ta').dispatchEvent(new Event('input'))};
 $('#txRun').onclick=()=>run(['text']);
+/* ---------- orb voice ---------- */
+let SPK=true;try{SPK=localStorage.getItem('moodsync:orbvoice')!=='0'}catch(e){}
+const TTS='speechSynthesis'in window;let sayRaf=0,sayOrb=null,sayId=0;
+function endSay(){cancelAnimationFrame(sayRaf);if(sayOrb){sayOrb.classList.remove('speaking');if(!sayOrb.classList.contains('recording'))sayOrb.style.setProperty('--lvl',0);sayOrb=null}}
+function stopSay(){if(!TTS)return;sayId++;speechSynthesis.cancel();endSay()}
+function say(text,orb){if(!TTS||!SPK||!text)return;stopSay();const id=sayId;
+ setTimeout(()=>{if(id!==sayId)return;const u=new SpeechSynthesisUtterance(text),en=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang)),pool=en.some(x=>x.localService)?en.filter(x=>x.localService):en,v=pool.find(x=>/en[-_]IN/i.test(x.lang))||pool.find(x=>/natural|neural|samantha|aria|google/i.test(x.name))||pool[0];
+  if(v)u.voice=v;u.lang=v?v.lang:'en-US';u.rate=.96;let bump=0;
+  u.onstart=()=>{if(id!==sayId)return;sayOrb=orb;orb.classList.add('speaking');const t0=performance.now();(function f(){if(!sayOrb||id!==sayId)return;const t=(performance.now()-t0)/1000;bump*=.9;const l=RM?.15:.14+.1*Math.sin(t*7)+.06*Math.sin(t*11.3)+bump;orb.style.setProperty('--lvl',Math.max(0,l).toFixed(3));sayRaf=requestAnimationFrame(f)})()};
+  u.onboundary=()=>{bump=.22};u.onend=u.onerror=()=>{if(id===sayId)endSay()};speechSynthesis.speak(u)},60)}
+function speakResult(r){const o=$('#orbR');if(r.none)return say('I couldn’t get a valid signal, so I haven’t estimated anything.',o);const f=(r.why.match(/^.*?[.!?](?=\s|$)/)||[r.why])[0];say((r.mood?'Estimated mood: '+r.label+'. ':r.label+'. ')+f+' '+((r.dis&&r.dis[0])||'')+' Confidence is '+r.conf.toLowerCase()+'. This is only an estimate.',o)}
+{const b=$('#spk');if(!TTS)b.hidden=true;else{const u=()=>{b.textContent='Orb voice: '+(SPK?'On':'Off');b.setAttribute('aria-pressed',SPK)};u();b.onclick=()=>{SPK=!SPK;try{localStorage.setItem('moodsync:orbvoice',SPK?'1':'0')}catch(e){}if(!SPK)stopSay();u();if(SPK)say('Orb voice is on.',$('#orbH'))}}}
 /* ---------- face ---------- */
 let cam=null,fLoop=null,modelsP=null;
 function loadModels(){if(!modelsP){modelsP=(async()=>{if(!window.faceapi)throw new Error('lib');const u='https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';await faceapi.nets.tinyFaceDetector.loadFromUri(u);await faceapi.nets.faceExpressionNet.loadFromUri(u)})();modelsP.catch(()=>{modelsP=null})}return modelsP}
@@ -225,14 +237,14 @@ async function camOn(){if(cam)return;try{cam=await navigator.mediaDevices.getUse
  const B=d.detection.box,W=v.parentElement.clientWidth,H=v.parentElement.clientHeight,sc=Math.min(W/v.videoWidth,H/v.videoHeight),ox=(W-v.videoWidth*sc)/2,oy=(H-v.videoHeight*sc)/2;
  Object.assign(bx.style,{left:(W-(ox+(B.x+B.width)*sc))+'px',top:(oy+B.y*sc)+'px',width:B.width*sc+'px',height:B.height*sc+'px'});bx.classList.add('on');
  $('#exp').innerHTML=Object.entries(f.ema).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,p])=>'<div><span>'+k+'</span><i style="width:'+Math.round(p*100)+'%"></i></div>').join('');
- $('#p-face .fprog i').style.width=Math.min(f.n/20,1)*100+'%';$('#faceRun').disabled=f.n<8;
+ $('#p-face .fprog i').style.width=Math.min(f.n/20,1)*100+'%';$('#faceRun').disabled=f.n<8;if(f.n===1)say('I can see you. Hold steady.',$('#orbF'));if(f.n===20)say('That’s enough. You can see the result now.',$('#orbF'));
  $('#faceLive').textContent=f.n<20?'Hold steady… '+f.n+'/20 frames':'Enough captured. See the result, or keep going for a steadier read.'},250)}
 function camStop(){clearInterval(fLoop);fLoop=null;if(!cam)return;cam.getTracks().forEach(t=>t.stop());cam=null;const v=$('#vid');v.srcObject=null;v.hidden=true;$('#faceMsg').hidden=false;$('#faceMsg').textContent='Camera is off.';$('#stage').classList.remove('live')}
 $('#camOn').onclick=camOn;$('#camOff').onclick=()=>{camStop();toast('Camera turned off')};$('#faceRun').onclick=()=>run(['face']);
 /* ---------- voice ---------- */
 let A=null;
 function pitch(b,sr){const n=b.length,lo=Math.floor(sr/400),hi=Math.floor(sr/75);let c0=0,best=-1,bl=0;for(let i=0;i<n;i++)c0+=b[i]*b[i];for(let l=lo;l<=hi;l++){let s=0;for(let i=0;i<n-l;i++)s+=b[i]*b[i+l];if(s>best){best=s;bl=l}}return c0>0&&best/c0>.5?sr/bl:0}
-async function recGo(){if(A)return;let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){$('#vOut').textContent=e.name==='NotAllowedError'?'Microphone permission was denied. Allow it in your browser’s site settings, then try again.':'No microphone was found or it is in use by another app.';return}
+async function recGo(){if(A)return;stopSay();let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){$('#vOut').textContent=e.name==='NotAllowedError'?'Microphone permission was denied. Allow it in your browser’s site settings, then try again.':'No microphone was found or it is in use by another app.';return}
  const ctx=new (window.AudioContext||window.webkitAudioContext)(),an=ctx.createAnalyser();an.fftSize=2048;ctx.createMediaStreamSource(st).connect(an);
  A={st,ctx,an,buf:new Float32Array(2048),rms:[],pit:[],t0:performance.now(),f:0,words:0,tr:'',nf:[],thr:.015};
  if($('#srOk').checked){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){const r=new SR();r.continuous=true;r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)A.tr+=e.results[i][0].transcript+' '};r.onerror=()=>{};try{r.start();A.sr=r}catch(e){}}else toast('Speech recognition isn’t supported here; pace will be skipped.')}
@@ -248,12 +260,12 @@ async function recGo(){if(A)return;let st;try{st=await navigator.mediaDevices.ge
 function recStop(quiet){if(!A)return;const a=A;A=null;a.st.getTracks().forEach(t=>t.stop());a.ctx.close();try{a.sr&&a.sr.stop()}catch(e){}
  $('#recDot').classList.remove('on');const ob=$('#orbV');ob.classList.remove('busy','recording');ob.style.setProperty('--lvl',0);$('#olab').textContent='Tap to record';$('#liveV').textContent='';if(quiet===true)return;navigator.vibrate&&navigator.vibrate([15,40,15]);
  const dur=(performance.now()-a.t0)/1000,thr=a.thr,v=a.rms.filter(x=>x>thr);
- if(dur<2||v.length<20){$('#vOut').textContent='Not enough speech was picked up. Record at least a few seconds of talking.';return}
+ if(dur<2||v.length<20){$('#vOut').textContent='Not enough speech was picked up. Record at least a few seconds of talking.';say('I didn’t catch enough speech. Try again.',$('#orbV'));return}
  const en=v.reduce((x,y)=>x+y,0)/v.length,pm=a.pit.length>=8?a.pit.reduce((x,y)=>x+y,0)/a.pit.length:null,psd=pm?Math.sqrt(a.pit.reduce((x,y)=>x+(y-pm)**2,0)/a.pit.length):null,pause=1-v.length/a.rms.length;
  const words=a.tr.trim()?a.tr.trim().split(/\s+/).length:0,wpm=words>=5?words/(dur/60):null;
  const cues=[];if(en>.08)cues.push(1);else if(en<.025)cues.push(-1);if(psd!=null){if(psd>35)cues.push(1);else if(psd<12)cues.push(-1)}if(pause>.5)cues.push(-1);else if(pause<.2)cues.push(1);if(wpm!=null){if(wpm>170)cues.push(1);else if(wpm<100)cues.push(-1)}
  state.voice={dur,en,pm,psd,pause,wpm,tr:a.tr.trim(),arousal:cues.length?cues.reduce((x,y)=>x+y,0)/cues.length:0,nc:cues.length};
- $('#vOut').innerHTML=`Recorded ${dur.toFixed(1)}s · loudness ${(en*100).toFixed(1)}% of full scale · pauses ${Math.round(pause*100)}% of the time · pitch ${pm?Math.round(pm)+' Hz (variation ±'+Math.round(psd)+')':'not reliably measured'} · pace ${wpm?Math.round(wpm)+' words/min':'not measured (needs transcription)'}${state.voice.tr?`<br>Transcript: “${esc(state.voice.tr)}”`:''}`;$('#voiceRun').hidden=false;$('#olab').textContent='Tap to record again'}
+ $('#vOut').innerHTML=`Recorded ${dur.toFixed(1)}s · loudness ${(en*100).toFixed(1)}% of full scale · pauses ${Math.round(pause*100)}% of the time · pitch ${pm?Math.round(pm)+' Hz (variation ±'+Math.round(psd)+')':'not reliably measured'} · pace ${wpm?Math.round(wpm)+' words/min':'not measured (needs transcription)'}${state.voice.tr?`<br>Transcript: “${esc(state.voice.tr)}”`:''}`;$('#voiceRun').hidden=false;$('#olab').textContent='Tap to record again';say('Got it. I heard '+Math.round(dur)+' seconds of speech. Tap See voice result.',$('#orbV'))}
 $('#orbV').onclick=()=>A?recStop():recGo();$('#voiceRun').onclick=()=>run(['voice']);
 /* ---------- analysis ---------- */
 function analyze(sel){const vec={},sig=[],dis=[];Object.keys(MOODS).forEach(k=>vec[k]=0);let used=0,textR=null,namedBy=0,n=0;
@@ -286,11 +298,11 @@ function showResult(r){show('result');const o=$('#orbR');tint(o,r.none?MODE_C.mu
  if(r.textR)h+=`<div class="sig"><b>Highlights</b><span style="color:var(--ink)">${hlHTML(r.textR)}</span></div>`;
  h+=`</div>`;
  if(!r.none){h+=`<p class="note">What do you actually feel? Your answer is saved separately.</p><div class="chips" id="selfC" style="justify-content:center">${Object.keys(MOODS).map(m=>`<button data-m="${m}" style="--a:${MOODS[m][0]};--b:${MOODS[m][1]}">${m}</button>`).join('')}</div>`}
- h+=`<div class="row" style="justify-content:center;margin-top:24px">${r.none?'':'<button class="cta" id="save">SAVE TO MOOD HISTORY</button>'}<button class="ghost" id="again">Analyze again</button></div>`;
+ h+=`<div class="row" style="justify-content:center;margin-top:24px">${r.none?'':'<button class="cta" id="save">SAVE TO MOOD HISTORY</button>'}<button class="ghost" id="replay">Replay</button><button class="ghost" id="again">Analyze again</button></div>`;
  $('#resBody').innerHTML=h;
  $$('#selfC button').forEach(b=>b.onclick=()=>{state.self=state.self===b.dataset.m?null:b.dataset.m;$$('#selfC button').forEach(x=>x.classList.toggle('on',x.dataset.m===state.self))});
  $('#again').onclick=()=>{show('analyze');setMode(state.mode||'multi')};
- const sv=$('#save');if(sv)sv.onclick=()=>{if(state.saved)return;const a=store.get();a.push({id:Date.now(),ts:r.ts,mood:r.mood,label:r.label,methods:r.methods,self:state.self});store.set(a);state.saved=true;sv.disabled=true;sv.textContent='Saved';toast('Saved to mood history')}}
+ const sv=$('#save');if(sv)sv.onclick=()=>{if(state.saved)return;const a=store.get();a.push({id:Date.now(),ts:r.ts,mood:r.mood,label:r.label,methods:r.methods,self:state.self});store.set(a);state.saved=true;sv.disabled=true;sv.textContent='Saved';toast('Saved to mood history')};$('#replay').onclick=()=>SPK?speakResult(r):toast('Orb voice is off');speakResult(r)}
 /* ---------- home / history / insights ---------- */
 const fmt=ts=>new Date(ts).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
 const dot=m=>`style="--a:${(MOODS[m]||['#64748b','#475569'])[0]};--b:${(MOODS[m]||['#64748b','#475569'])[1]}"`;
